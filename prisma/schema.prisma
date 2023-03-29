@@ -1,0 +1,39 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Image {
+  id        String      @id @default(uuid())
+  views     ImageView[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  Event     Event?      @relation(fields: [eventId], references: [id])
+  eventId   String?
+}
+
+model ImageView {
+  id        String   @id @default(uuid())
+  imageId   String
+  image     Image    @relation(fields: [imageId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Event {
+  id        String   @id @default(uuid())
+  name      String
+  date      DateTime
+  location  String
+  content   String
+  images    Image[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  active    Boolean  @default(true)
+}
