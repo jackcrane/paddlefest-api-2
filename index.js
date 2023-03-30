@@ -122,6 +122,28 @@ app.get("/events", async (req, res) => {
   }
 });
 
+app.get("/events/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const event = await prisma.event.findUnique({
+      where: { id },
+      include: {
+        images: true,
+      },
+    });
+
+    if (!event) {
+      res.status(404).json({ message: "Event not found" });
+      return;
+    }
+
+    res.json(event);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
 app.listen(3000, () => {
   console.log("Server started on port 3000");
 });
