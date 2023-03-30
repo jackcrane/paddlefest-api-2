@@ -27,7 +27,7 @@ model ImageView {
 }
 
 model Event {
-  id        String   @id @default(uuid())
+  id        String   @id @unique @default(uuid())
   name      String
   date      DateTime
   location  String
