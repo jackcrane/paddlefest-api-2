@@ -5,8 +5,11 @@ import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 dotenv.config();
+import { Expo } from "expo-server-sdk";
+let expo = new Expo({ accessToken: process.env.EXPO_ACCESS_TOKEN });
 
 const app = express();
+app.use(express.json());
 
 const s3 = new AWS.S3({
   endpoint: process.env.SPACES_ENDPOINT,
@@ -138,6 +141,93 @@ app.get("/events/:id", async (req, res) => {
     }
 
     res.json(event);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+app.post("/notification-token", async (req, res) => {
+  /*
+  request will have keys
+  {
+    token: String
+    tiers: [String]
+  }
+  */
+  try {
+    let { token, tiers } = req.body;
+    tiers = tiers.map((tier) => tier.toUpperCase());
+    tiers.push("ALL");
+
+    let notificationToken;
+    const existingToken = await prisma.notificationTokens.findUnique({
+      where: {
+        token,
+      },
+    });
+
+    if (existingToken) {
+      notificationToken = await prisma.notificationTokens.update({
+        where: {
+          id: existingToken.id,
+        },
+        data: {
+          tiers: {
+            deleteMany: {},
+            createMany: {
+              data: tiers.map((tier) => ({ tier })),
+            },
+          },
+        },
+      });
+    } else {
+      notificationToken = await prisma.notificationTokens.create({
+        data: {
+          token,
+          tiers: {
+            createMany: {
+              data: tiers.map((tier) => ({ tier })),
+              skipDuplicates: true,
+            },
+          },
+        },
+      });
+    }
+
+    res.json(notificationToken);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+app.post("/notification/send", async (req, res) => {
+  try {
+    const tiers = req.body.tiers.map((tier) => tier.toUpperCase());
+    let tokens = await prisma.notificationTokens.findMany({
+      where: {
+        tiers: {
+          some: {
+            tier: {
+              in: tiers,
+            },
+          },
+        },
+      },
+      include: {
+        tiers: {
+          select: {
+            tier: true,
+          },
+        },
+      },
+    });
+    tokens = tokens.map((token) => {
+      token.tiers = token.tiers.map((tier) => tier.tier);
+      return token;
+    });
+    res.json(tokens);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal Server Error" });

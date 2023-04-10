@@ -31,9 +31,34 @@ model Event {
   name      String
   date      DateTime
   location  String
-  content   String  @db.LongText
+  content   String   @db.LongText
   images    Image[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   active    Boolean  @default(true)
+}
+
+model NotificationTokens {
+  id        String                    @id @default(uuid())
+  token     String
+  tiers     NotificationConnections[]
+  active    Boolean                   @default(true)
+  createdAt DateTime                  @default(now())
+  updatedAt DateTime                  @updatedAt
+}
+
+model NotificationConnections {
+  id                   String              @id @default(uuid())
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  tier NotifcationTiers
+  NotificationTokens   NotificationTokens? @relation(fields: [notificationTokensId], references: [id])
+  notificationTokensId String?
+}
+
+enum NotifcationTiers {
+  ALL
+  SAFETY
+  EVENTS
+  RACES
 }
