@@ -158,7 +158,7 @@ app.post("/notification-token", async (req, res) => {
   try {
     let { token, tiers } = req.body;
     tiers = tiers.map((tier) => tier.toUpperCase());
-    tiers.push("ALL");
+    !tiers.includes("ALL") && tiers.push("ALL");
 
     let notificationToken;
     const existingToken = await prisma.notificationTokens.findUnique({
