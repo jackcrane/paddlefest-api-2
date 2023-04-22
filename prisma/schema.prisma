@@ -38,6 +38,17 @@ model Event {
   active    Boolean  @default(true)
 }
 
+model ScheduleEvent {
+  id        String   @id @default(uuid())
+  name      String
+  start     DateTime
+  end       DateTime
+  location  String
+  content   String   @db.LongText
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model NotificationTokens {
   id        String                    @id @default(uuid())
   token     String

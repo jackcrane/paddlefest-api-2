@@ -147,6 +147,16 @@ app.get("/events/:id", async (req, res) => {
   }
 });
 
+app.get("/schedule", async (req, res) => {
+  try {
+    await prisma.schedule.findMany();
+    res.json(schedule);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
 app.post("/notification-token", async (req, res) => {
   /*
   request will have keys
