@@ -149,7 +149,7 @@ app.get("/events/:id", async (req, res) => {
 
 app.get("/schedule", async (req, res) => {
   try {
-    await prisma.scheduleEvent.findMany();
+    const schedule = await prisma.scheduleEvent.findMany();
     res.json(schedule);
   } catch (error) {
     console.error(error);
