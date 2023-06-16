@@ -19,6 +19,11 @@ const s3 = new AWS.S3({
 
 const upload = multer();
 
+app.use((req, res, next) => {
+  console.log(req.method, req.url);
+  next();
+});
+
 app.post("/upload", upload.single("file"), async (req, res) => {
   try {
     // Create record in the database
@@ -171,7 +176,7 @@ app.post("/notification-token", async (req, res) => {
     !tiers.includes("ALL") && tiers.push("ALL");
 
     let notificationToken;
-    const existingToken = await prisma.notificationTokens.findUnique({
+    const existingToken = await prisma.notificationTokens.findFirst({
       where: {
         token,
       },
@@ -196,10 +201,11 @@ app.post("/notification-token", async (req, res) => {
         data: {
           token,
           tiers: {
-            createMany: {
-              data: tiers.map((tier) => ({ tier })),
-              skipDuplicates: true,
-            },
+            connect: tiers.map((tier) => ({ tier })),
+            // createMany: {
+            //   data: tiers.map((tier) => ({ tier })),
+            //   skipDuplicates: true,
+            // },
           },
         },
       });
